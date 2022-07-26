@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="plugins/elementui/index.css">
+
+    <link rel="stylesheet" href="plugins/font-awesome/css/font-awesome.min.css">
+
+    <link rel="stylesheet" href="css/style.css">
+
+</head>
+<body>
+
+<div>
+    <h1>图书管理系统</h1>
+</div>
+<div id="app">
+    <el-table
+            :data="tableList"
+            style="width: 100%">
+        <el-table-column type="index" align="center" label="序号"></el-table-column>
+        <el-table-column prop="name" label="名字" align="center"></el-table-column>
+        <el-table-column prop="type" label="类别" align="center"></el-table-column>
+        <el-table-column prop="description" label="描述" align="center"></el-table-column>
+        <el-table-column label="操作" align="center">
+            <template slot-scope="scope">
+                <el-button type="primary">添加</el-button>
+                <el-button type="danger">删除</el-button>
+            </template>
+        </el-table-column>
+    </el-table>
+</div>
+
+
+<script src="js/vue.js"></script>
+
+<script src="plugins/elementui/index.js"></script>
+
+<script type="text/javascript" src="js/jquery.min.js"></script>
+
+<script src="js/axios-0.18.0.js"></script>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            tableList: [] //用于展示所有数据
+        },
+        created() {
+            this.getAll();
+        },
+
+        methods: {
+            getAll() {
+                axios.get("/books").then(res => {
+                    this.tableList = res.data.data;
+                })
+            }
+        }
+    })
+</script>
+</body>
+</html>
