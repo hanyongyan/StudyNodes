@@ -1192,9 +1192,16 @@ GET可以简写为@GetMapping，其他同理
 
 
 
-<img src="https://sm-1301822562.cos.ap-nanjing.myqcloud.com/myTypora/image-20220718102929755.png" alt="image-20220718102929755" style="zoom:50%;" />
+####  @RequestParam  @RequestBody   @PathVariable
 
-
+- 区别
+  -  @RequestParam 用于接收url地址传参或表单传参
+  -  @RequestBody  用于接受json数据
+  -  @PathVariable 用于接收路径参数，实用{参数名称}描述路径参数
+- 应用
+  - 后期开发中，发送请求参数超过1个时，以json格式为主，@RequestBody 应用较广
+  - 如果使用非JSON格式数据，选用@RequestParam接受请求参数
+  - 采用RESTful进行开发，当参数数量较少时，例如一个，可以采用@PathVariable接受请求路径变量，通常用于传递id值
 
 <img src="https://sm-1301822562.cos.ap-nanjing.myqcloud.com/myTypora/image-20220718174240916.png" alt="image-20220718174240916" style="zoom:50%;" />
 
@@ -1499,26 +1506,6 @@ SpringBoot项目快速启动
 
   - <img src="https://sm-1301822562.cos.ap-nanjing.myqcloud.com/myTypora/image-20220721133955464.png" alt="image-20220721133955464" style="zoom:50%;" />
 
-- 多环境启动
-
-  在一个项目中一般会有生产，开发，测试三个环境，如何切换使用的
-
-  ```yaml
-  spring:
-    profiles:
-      active: test  #表明当前的环境
-  --- # 用于区分环境，如不添加会报错
-  spring:				
-    profile: dev    # 环境的名字
-  server: 			
-    port: 80
-  ---
-  spring:					
-    profile: test    		#设置生产环境
-  server: 				#生产环境具体参数设定
-    port: 81
-  ```
-
   
 
 #### Maven与SpringBoot关联操作（多环境配置
@@ -1604,6 +1591,40 @@ spring:
 
 #### 程序打包与运行（Windows版
 
+1. 点击package进行打包，打包时点击切换跳过测试模式，不会执行test包内的测试类
+
+   <img src="https://sm-1301822562.cos.ap-nanjing.myqcloud.com/myTypora/image-20220726120212767.png" alt="image-20220726120212767" style="zoom:50%;" />
+
+2. 运行项目
+
+   `java -jar 工程名.jar`
+
+jar支持命令行启动需要依赖maven插件支持，请确认打包时是否具有SpringBoot对应的maven插件
+
+```xml
+<build>
+	<plugins>
+    	<groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+    </plugins>
+</build>
+```
+
+命令行启动常见问题及解决方案
+
+```shell
+# 查询端口
+netstat -ano
+# 查询指定端口 推荐使用 是模糊查询
+netstat -ano | findstr "端口号"
+# 根据进程PID查询进程名称  可以使用一下查看了解，可以查看谁在用
+tasklist | findstr "进程PID号"
+# 根据PID杀死任务
+taskkill -f -pid "进程PID号"
+# 根据进程名称杀死任务  进程名称可能对应着多个进程，会一下杀掉完
+taskkill -f -t -im "进程名称"
+```
+
 
 
 #### 程序运行（Linux版
@@ -1620,40 +1641,474 @@ spring:
 
 ### 配置高级
 
+- 临时属性设置
 
+  使用 jar 命令启动 SpringBoot 工程时可以使用临时属性替换配置文件中的属性
 
+  比如写好的配置文件中的端口号为80，但是你的80端口有更重要的东西在运行，就可以使用临时属性来设置
 
+  使用cmd运行时添加后缀即可
 
+  `java -jar 项目名.jar --server.port=8080`
 
+  就使得使用的端口为8080
 
+  使用规则 `--对应的属性文件中的设置` 只不过是从yaml格式转换为了properties文件格式
 
+  要想配置更多的属性继续在后面使用 `--配置`
 
+  临时属性必须时当前boot工程支持的属性，否则设置无效
 
+  ------
 
+  我们可以通过编程形式带参数启动SpringBoot程序，为程序添加运行参数
 
+  ```java
+  //设置以后通过cmd命令也无法使用临时参数
+  @SpringBootApplication
+  public class SpringBootDemoApplication {
+      public static void main(String[] args) {
+          String[] arg = new String[1];
+          //将端口号设置为8080
+          arg[0] = "--server.port=8080";
+          SpringApplication.run(SpringBootDemoApplication.class, arg);
+      }
+  }
+  //不携带参数启动时，去掉方法里面的arg
+  ```
 
+  
 
+- 配置文件分类
+
+  SpringBoot中4级配置文件
+
+  级别从上到下依次降低   配置文件是互补的
+
+  1. 打包出来的 jar 包所在文件夹内创建 config/application.yml 进行配置  
+  2. jar 包所在的文件夹中的配置文件 application.yml
+  3. 工程中配置文件所在的文件夹内新建  config/application.yml
+  4. 配置文件
+
+  - 一级与二级留作系统打包后设置通用属性，一级常用于运维经理进行线上整体项目部署方案调控
+  - 三级与四级用于系统开发阶段设置通用属性，三级常用于项目经理进行整体项目属性调控
 
 ### 多环境开发
 
+在一个项目中一般会有生产，开发，测试三个环境，如何切换使用的
+
+```yaml
+spring:
+  profiles:
+    active: test  #表明当前使用的环境
+--- # 用于区分环境，如不添加会报错
+spring:				
+  profile: dev    # 环境的名字
+server: 			
+  port: 80
+---
+spring:					
+  profile: test    		#设置生产环境
+server: 				#生产环境具体参数设定
+  port: 81
+```
+
+也可拆分来写
+
+每一个独立的配置与原配置文件所在层级相同，命名为 `application-名字.yml`
+然后再application.yml中进行配置具体使用哪一个配置文件
+
+```yaml
+spring:
+  profiles:
+    active: test  #表明当前使用的环境
+```
+
+application.yml是主环境配置文件其余的是环境分类配置文件
+
+主环境文件中设置公共配置（全局
+
+环境分类配置文件中常用于设置冲突属性（局部
+
+properties配置文件基本相同
+
+- 一般根据功能对配置文件中的信息进行拆分，并制作成独立的配置文件，命名规则如下
+
+  - application-devMVC.yml
+
+- 使用include属性再激活指定环境的情况下，同时对多个环境进行加载使其生效，多个环境使用逗号分隔
+
+  当include中的配置冲突时会使用最后加载的比如下面的devMVC，如果主环境中有相同的配置，使用主环境中的配置
+
+  ```yaml
+  spring: 
+   profiles: 
+     active: dev
+     inclue: devDB,devMVC
+  ```
+
+也可以使用group属性代替include属性，降低了配置书写量
+
+```yaml
+spring: 
+ profiles: 
+   active: dev
+   group: 
+     "dev": devDB,devMVC
+     "pro": proDB,ProMVC
+```
+
+更推荐使用group，便于线上维护管理，但是有冲突的配置会使用最后加载的文件的配置
+
+#### 多环境开发控制
+
+当Maven与SpringBoot多环境产生冲突时，我们应该让maven使用boot中的环境，因为boot是依赖Maven运行的，Maven的配置会更优先
+
+1. Maven中设置多环境属性
+
+   ```xml
+   <profiles>
+   	<profile>
+       	<id>dev_env</id><!--此处的id自定义设置-->
+           <properties>
+               <!--方便在spring配置文件中引用-->
+           	<profile.active>dev</profile.active>
+           </properties>
+           <activation>
+               <!--设置是否默认启动此环境-->
+           	<activeByDefault>true</activeByDefault>
+           </activation>
+       </profile>
+       
+       <profile>
+       	<id>pro_env</id>
+           <properties>
+           	<profile.active>pro</profile.active>
+           </properties>
+       </profile>
+   </profiles>
+   ```
+
+2. Spring Boot中引用Maven属性
+
+   ```yaml
+   spring: 
+    profiles:
+      active: @profile.active@  #引用了maven中默认启动的属性的<profile.active>中的
+   ```
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+如果在使用中切换配置，但是运行时配置不更新的情况，点击maven中的clean也没有的话，点击compile即可解决问题
 
 ### 日志
 
+#### 日志基础
+
+- 编程期调试代码
+- 运营期记录信息
+  - 记录日常运营重要信息（峰值流浪，平均响应时长
+  - 记录应用报错信息（错误堆栈
+  - 记录运维过程数据（扩容，宕机，报警。。。
+
+日志级别设置
+
+```yaml
+logging:
+  level:
+    root: # 来填写级别  默认为info
+```
+
+代码中使用日志工具记录日志
+使用Lombok提供的注解 @Slf4j 简化开发，煎炒日志对象的声明操作
+
+```java
+@Slf4j
+//其他的注解该配配
+public class BookController {
+   @GetMapping
+    public String getById(){
+        //注解生成的对象就叫log
+        log.info("infog...")//会在控制台打印出日志
+    }
+}
+```
+
+日志级别
+
+- trace：运行堆栈信息，使用率低
+- debug：程序员调试代码使用
+- info：记录运维过程数据
+- warn：记录运维过程报警信息
+- error：记录错误堆栈信息
+
+设置日志输出级别
+
+```yaml
+# 开启debug模式，输出调试信息，常用于检查系统运行状况
+debug: true
+# 设置日志级别，root表示根节点，即整体应用日志级别
+logging:
+	# 自定义组名，设置当前组中所包含的包,推荐使用日志组
+    group:
+      ebank: con.demo.controller
+    level:
+       root: info
+       # 为对应组设置日志级别
+       ebank: debug
+       # 对包设置日志级别
+       com.demo.service: info
+```
+
+#### 日志输出格式控制
+
+![image-20220727124323343](https://sm-1301822562.cos.ap-nanjing.myqcloud.com/myTypora/image-20220727124323343.png)
+
+- PID：进程ID，用于表明当前操作所处的进程，当多服务同时记录日志时，该值可用于协调程序员调试程序
+- 所属类/接口名：当前显示信息为SpringBoot重写后的信息，名称过长时，简化包名书写为首字母，甚至直接删除
+
+设置日志输出格式
+
+```yaml
+logging:
+  pattern: 
+    console: "%d %clr(%5p) --- [%t] %-40.40c %m %n"
+# %d：日期
+# %m：消息
+# %n：换行
+# %p：日志级别  %5p设置占位符  通用  默认右对其 设置左对齐使用-
+# %clr()：设置颜色
+# %t：所属进程
+# %c：类名   %-40.40c左对齐一共四十位，.40代表强制截断为40位，超出的直接截掉
+```
+
+
+
+#### 日志文件
+
+生成的日志文件跟项目所在同一目录
+
+设置日志文件
+
+```yaml
+logging: 
+   file:
+     name: server.log  #设置了文件的名字
+#单一的日志文件  不推荐使用
+```
+
+日志文件详细配置
+
+```yaml
+logging:
+  file:
+    name: server.log
+  logback:
+    rollingpolicy:
+      max-file-size: 1MB #设置单个日志文件的最大值
+      file-name-pattern: server.%d{yyyy-MM-dd}.%i.log #设置文件的命名格式
+      										# %d是日期 括号里面的是日期格式
+```
+
+
+
+## SpringBoot开发实用篇
+
+### 热部署
+
+**只在开发环境中有效**
+
+当项目中的文件发生改变以后不需要重启服务器
+
+热部署仅加载当前开发者自定义开发的资源，不加载jar资源
+
+导入坐标
+
+```xml
+<!--开启开发者工具-->
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-devtools</artifactId>
+    <optional>true</optional>
+</dependency>
+```
+
+
+
+手工启动热部署 Ctrl-F9
+
+自动启动热部署<img src="https://sm-1301822562.cos.ap-nanjing.myqcloud.com/myTypora/image-20220727162035556.png" alt="image-20220727162035556" style="zoom: 50%;" />
+
+<img src="https://sm-1301822562.cos.ap-nanjing.myqcloud.com/myTypora/image-20220727163807674.png" alt="image-20220727163807674" style="zoom: 50%;" />
+
+会在idea失去焦点五秒以后启动热部署
+
+#### 热部署配置范围
+
+```yaml
+spring:
+  devtools:
+    restart:
+      exclude:  static/**  # resource/static文件内的资源不会启动热部署，默认从resource开始  /**代表全部文件 单个文件直接指定名字。
+```
+
+默认不触发重启的目录列表
+
+- /META-INF/maven
+- /META-INF/resources
+- /resources
+- /statis
+- /public
+- /templates
+
+#### 关闭热部署
+
+```yaml
+spring:
+  devtools:
+    restart:
+      enabled: false
+```
+
+还可以设置高优先级属性禁用热部署
+
+```java
+public static void main(String[] args){
+    System.serProperty("spring.devtools.restart.enabled","false");
+    SpringApplication.run(类名.class)
+}
+```
+
+
+
+### 配置高级
+
+#### 第三方bean属性绑定
+
+使用@configurationProperties为第三方bean绑定属性
+
+如果使用@configurationProperties出现注释警告
+导入坐标
+
+```xml
+<dependency>
+	<groupId>org,springframework.boot</groupId>
+    <artifactId>spring-boot-configuration-processor</artifactId>
+</dependency>
+```
+
+
+
+```java
+@Bean
+@configurationProperties(prefix = "datasource")
+public DruidDataSource dateSource(){
+    DruidDataSource ds = new DruidDataSource();
+    return ds;
+}
+```
+
+```yaml
+datasource:
+  driverClassName: com.mysql.jdbc.Driver
+```
+
+上面的ds对象有 driverClassName 此属性，故可以完成第三方bean绑定属性
+
+[yaml文件读取](# yaml文件怎么读取)方法三 同为@configurationProperties配置的讲解
+
+@EnableConfigurationProperties注解可以将使用@ConfigurationProperties注解对应的类加入Spring容器，相当于将其设置成了bean
+
+@EnableConfigurationProperties与@Component不能同时使用，因为@Component也是将类设置为bena
+
+#### 宽松绑定/松散绑定
+
+@configurationProperties绑定属性支持属性名宽松绑定
+
+也就是说配置文件中的配置的名称的命名格式与类中属性的命名格式可以不一样
+
+```yaml
+ipaddress: 11111
+#ip-address  ip_address ip_a-dd-ress  都可以匹配成功
+```
+
+```java
+private String ipAddress
+```
+
+@configurationProperties( prefix = "...")  prefix的命名规范：仅能使用纯小写字符，数字，下划线作为合法的字符
+
+@Value不支持松散绑定
+
+
+
+#### 常用时间与空间计量单位
+
+```java
+@ConfigurationProperties(prefix = "servers")
+public class ServerConfig{
+    @DurationUnit(按照提示填写选择你想要的)
+    private Duration serverTimeOut
+    @DataSizeUnit(按照提示填写选择你想要的)
+    private DataSize dataSize;    
+}
+```
+
+```yaml
+servers: 
+  serverTimeOut: 100
+  dataSize: 100
+```
+
+
+
+#### Bean属性校验
+
+开启数据校验有助于系统安全性，
+
+先导入校验规范的坐标
+
+```xml
+<!--第一步-->
+<!--导入规范-->
+<dependency>
+	<groupId>javax.validation</groupId>
+    <artifactId>validation-api</artifactId>
+</dependency>
+<!--使用hibernate框架提供的校验器做实现类-->
+<dependency>
+	<groupId>org.hibernate.validator</groupId>
+    <artifactId>hibernate-validator</artifactId>
+</dependency>
+```
+
+```java
+//第二部：开启校验功能
+@Validated
+public class ServerConfig{
+    //第三步：设置校验规则
+    @Max(value = 400, message = "最大值不能超过四百")
+    private int port;
+    //点击max查看其对应的包，可以查看所有的校验规则
+}
+```
+
+
+
+#### 进制数据转换规则
+
+[点击这里查看，字面值表达式那里](# yml/yaml)
+
+### 测试
+
+#### 加载测试专用属性
+
+#### 加载测试专用配置
+
+#### Web环境模拟测试
+
+#### 数据层测试回滚
+
+#### 测试用例数据设定
 
 
 
@@ -1665,6 +2120,47 @@ spring:
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### 数据层解决方案
+
+
+
+
+
+
+
+
+
+### 整合第三方技术
+
+
+
+
+
+
+
+
+
+
+
+### 监控
 
 
 
@@ -1708,7 +2204,16 @@ spring:
 
 [YAML 入门教程 | 菜鸟教程 (runoob.com)](https://www.runoob.com/w3cnote/yaml-intro.html)
 
+字面值表达方式
 
+- boolean：true
+- float：3.14								支持科学计数法 6.18e+5
+- int：123 								   支持二进制0b，八进制01~7，十进制正常，十六进制0X  
+- null：~
+- string：helloword
+- string2："HelloWord"
+- date：2018-02-7					日期必须使用yyyy-MM-dd格式
+- datetime：2018-02-17T15：02：31+08：00					时间和日期之间使用T连接，最后使用+代表时区
 
 **当你在配置文件中输入以0开头的最好使用引号引起来，报错的可能性大**
 
@@ -1773,8 +2278,7 @@ enterprise:
 ```
 
 ```java
-//此处的enterprise代表配置文件中的enterprise,prifix不写也能用
-//ding'yi'ch
+//此处的enterprise代表配置文件中的enterprise，想要的属性的上一层级,prifix不写也能用
 @Component
 @ConfigurationProperties(perfix = "enterprise")	
 public class Enterprise{
