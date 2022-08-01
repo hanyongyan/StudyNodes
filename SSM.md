@@ -1641,57 +1641,57 @@ taskkill -f -t -im "进程名称"
 
 ### 配置高级
 
-- 临时属性设置
+#### 临时属性设置
 
-  使用 jar 命令启动 SpringBoot 工程时可以使用临时属性替换配置文件中的属性
+使用 jar 命令启动 SpringBoot 工程时可以使用临时属性替换配置文件中的属性
 
-  比如写好的配置文件中的端口号为80，但是你的80端口有更重要的东西在运行，就可以使用临时属性来设置
+比如写好的配置文件中的端口号为80，但是你的80端口有更重要的东西在运行，就可以使用临时属性来设置
 
-  使用cmd运行时添加后缀即可
+使用cmd运行时添加后缀即可
 
-  `java -jar 项目名.jar --server.port=8080`
+`java -jar 项目名.jar --server.port=8080`
 
-  就使得使用的端口为8080
+就使得使用的端口为8080
 
-  使用规则 `--对应的属性文件中的设置` 只不过是从yaml格式转换为了properties文件格式
+使用规则 `--对应的属性文件中的设置` 只不过是从yaml格式转换为了properties文件格式
 
-  要想配置更多的属性继续在后面使用 `--配置`
+要想配置更多的属性继续在后面使用 `--配置`
 
-  临时属性必须时当前boot工程支持的属性，否则设置无效
+临时属性必须时当前boot工程支持的属性，否则设置无效
 
-  ------
+------
 
-  我们可以通过编程形式带参数启动SpringBoot程序，为程序添加运行参数
+我们可以通过编程形式带参数启动SpringBoot程序，为程序添加运行参数
 
-  ```java
-  //设置以后通过cmd命令也无法使用临时参数
-  @SpringBootApplication
-  public class SpringBootDemoApplication {
-      public static void main(String[] args) {
-          String[] arg = new String[1];
-          //将端口号设置为8080
-          arg[0] = "--server.port=8080";
-          SpringApplication.run(SpringBootDemoApplication.class, arg);
-      }
-  }
-  //不携带参数启动时，去掉方法里面的arg
-  ```
+```java
+//设置以后通过cmd命令也无法使用临时参数
+@SpringBootApplication
+public class SpringBootDemoApplication {
+    public static void main(String[] args) {
+        String[] arg = new String[1];
+        //将端口号设置为8080
+        arg[0] = "--server.port=8080";
+        SpringApplication.run(SpringBootDemoApplication.class, arg);
+    }
+}
+//不携带参数启动时，去掉方法里面的arg
+```
 
-  
 
-- 配置文件分类
 
-  SpringBoot中4级配置文件
+#### 配置文件分类
 
-  级别从上到下依次降低   配置文件是互补的
+SpringBoot中4级配置文件
 
-  1. 打包出来的 jar 包所在文件夹内创建 config/application.yml 进行配置  
-  2. jar 包所在的文件夹中的配置文件 application.yml
-  3. 工程中配置文件所在的文件夹内新建  config/application.yml
-  4. 配置文件
+级别从上到下依次降低   配置文件是互补的
 
-  - 一级与二级留作系统打包后设置通用属性，一级常用于运维经理进行线上整体项目部署方案调控
-  - 三级与四级用于系统开发阶段设置通用属性，三级常用于项目经理进行整体项目属性调控
+1. 打包出来的 jar 包所在文件夹内创建 config/application.yml 进行配置  
+2. jar 包所在的文件夹中的配置文件 application.yml
+3. 工程中配置文件所在的文件夹内新建  config/application.yml
+4. 配置文件
+
+- 一级与二级留作系统打包后设置通用属性，一级常用于运维经理进行线上整体项目部署方案调控
+- 三级与四级用于系统开发阶段设置通用属性，三级常用于项目经理进行整体项目属性调控
 
 ### 多环境开发
 
@@ -2102,43 +2102,228 @@ public class ServerConfig{
 
 #### 加载测试专用属性
 
+在启动测试环境时可以通过properties参数设置测试环境专用的属性
+
+```java
+@SpringBootTest(properties = {"test.prop=testValue"})
+public class pripertiesAndArgsTest{
+    @Value("${test.prop}")
+    private String msg;
+    @Test
+    void Test(){
+        System.out.println(msg);
+    }
+}
+//优势：比多环境开发中的测试环境影响范围更小，仅对当前测试类有效
+```
+
+在启动测试环境时可以通过args参数设置测试环境专用的传入参数
+
+[详细介绍](# 临时属性设置)
+
+```java
+@SpringBootTest(args = {"--test.arg=testValue"})
+public class propertiesAndArgsTest{
+    @Value("${test.arg}")
+    private String msg;
+     void Test(){
+        System.out.println(msg);
+    }
+}
+
+
+```
+
 #### 加载测试专用配置
+
+使用@Import注解加载当前测试类专用的配置
+
+当我们需要一个单独的bean只在测试用例中使用时，我们可以在test包下对这个bean进行构建
+
+```java
+@Configuration
+public class testBean{
+    @Bean
+    private String msgTest(){
+        return "msg";
+    }
+}
+
+@SpringBootTest
+@Import(testBean.class)
+public class configurationTest{
+    @Autowired
+    privete String name;
+    @Tese
+    void testConfiguration(){
+        sout(msg);
+    }
+} 
+```
 
 #### Web环境模拟测试
 
-#### 数据层测试回滚
+```java
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class WebTest{
+    @Test
+    void testRandomPort(){}
+}
+```
 
-#### 测试用例数据设定
+NONE：不启动web服务
+
+RANDOM_PORT：启动随机端口
+
+DEFINED_PORT：启动配置文件中的端口
+
+**虚拟请求测试**
+
+```java
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+//开启虚拟MVC调用
+@AutoConfigureMockMvc
+public class WebTest{
+    @Test
+    //注入虚拟MVC调用对象
+    void testWeb(@Autowired MockMvc mvc) throws Exception{
+        //创建虚拟请求，当前使用get请求访问/books
+     MockHttpServletRequesrBuilder builder = MockMvcRequestBuilders.get("/books");
+     	//执行请求
+     ResultActions action = mvc.perform(builder);
+    }
+}
+```
+
+**匹配响应执行状态**
+
+```java
+@Test
+public void testStatus(@Autowired MockMvc mvc)throws Exceptiom{
+	MockHttpServletRequesrBuilder builder = MockMvcRequestBuilders.get("/books");
+    ResultActions action = mvc.perform(builder);
+    //匹配执行状态（是否是预期值
+    //定义执行状态匹配器
+    StatusResultMatchers status = MockMvcResultMatchers.status();
+    //定义预期执行状态,即设置你预期返回的状态码
+    ResultMatcher ok = status.isOk();
+    //使用本次真实执行结果与预期结果进行对比
+    //action对象里面会有真正的状态码，与你预期的状态码两者进行对比
+    action.andExpect(ok);
+}
+```
+
+**匹配响应体**
+
+```java
+@Test
+public void testBody(@Autowired MockMvc mvc)throws Exceptiom{
+	MockHttpServletRequesrBuilder builder = MockMvcRequestBuilders.get("/books");
+    ResultActions action = mvc.perform(builder);
+    //匹配执行状态（是否是预期值
+    //定义执行状态匹配器
+    StatusResultMatchers content = MockMvcResultMatchers.content();
+    //定义预期执行状态
+    ResultMatcher result = content.string("");
+    //使用本次真实执行结果与预期结果进行对比
+    //action对象里面会有真正的对应的返回值，与你预期的返回值两者进行对比
+    action.andExpect(result);
+}
+```
+
+**匹配响应体JSON**（两者只是获取的时候对结果的解析方式不同
+
+```java
+@Test
+public void testBodyJson(@Autowired MockMvc mvc)throws Exceptiom{
+	MockHttpServletRequesrBuilder builder = MockMvcRequestBuilders.get("/books");
+    ResultActions action = mvc.perform(builder);
+    //匹配执行状态（是否是预期值
+    //定义执行状态匹配器
+    StatusResultMatchers content = MockMvcResultMatchers.content();
+    //定义预期执行状态
+    ResultMatcher result = content.json("对应的json数据");
+    //使用本次真实执行结果与预期结果进行对比
+    //action对象里面会有真正的对应的返回值，与你预期的返回值两者进行对比
+    action.andExpect(result);
+}
+```
+
+匹配其他的东西`MockMvcResultMatchers.content();`后面的content更改一下就行，使用提示可以查看里面都是有什么东西
+
+#### 业务层测试回滚
+
+当在进行测试业务时，不想把测试的数据添加到数据库中应开启事务，在对应的方法或者类上方添加注解 `@Transactional`SpringBoot会对测试用例对应的事务提交操作进行回滚
+
+如果想在测试用例中提交事务，可以通过 `@Rollback(false)`注解设置，相当于两者抵消了
 
 
 
+#### 测试用例设置随机数据
 
+测试用例数据通常采用随机值进行测试，使用SpringBoot提供的随机数为其赋值
 
+```yaml
+testcase: 
+  book: 
+    id: ${random.int}  				# 随机整数
+    id2: ${random.int(10)} 			# 10 以内随机数
+    type: ${random.int(10,20)}		# 10 ~ 20随机数
+    								# 不仅仅是只有int类型
+    								# value对应的是string类型 long对应long
+```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+`@ConfigurationProperties(perfix = "testcase.book")`然后使用此注解进行读取即可	
 
 ### 数据层解决方案
+
+#### SQL
+
+- 现有数据层解决方案技术选型
+
+  Druid + MybatisPlus + MySql
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### NoSQL
+
+##### Redis
+
+Redis是一款key-value存储结构的内存及NoSQL数据库
+
+- 支持多种数据存储格式
+- 支持持久化
+- 支持集群
+
+SpringBoot整合Redis
+先导入坐标
+
+```xml
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-redis</artifactId>
+</dependency>
+```
+
+进行配置
+
+##### Mongodb
+
+是一个开源，高性能，无模式的文档行数据库，最像关系型数据库的非关系型数据库
+
+ **适用条件**有很高的修改需求
 
 
 
@@ -2149,6 +2334,392 @@ public class ServerConfig{
 
 
 ### 整合第三方技术
+
+#### 缓存
+
+缓存是一种介于数据永久存储介质与数据应用之间的临时存储介质
+
+使用缓存可以有效地减少低速数据读取过程的次数（例如磁盘IO），提高系统性能
+
+缓存不仅可以用于提高永久性存储介质的数据读取效率，还可以提供临时的数据存储空间
+
+#### SpringBoot缓存使用方法
+
+1. 启用缓存
+2. 设置进入缓存的数据
+3. 设置读取缓存的数据
+
+导入坐标
+
+```xml
+<!--引用缓存-->
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-cache</artifactId>
+</dependency>
+```
+
+application.java文件中添加注解 `@EnableCaching`
+
+```java
+@SpringBootApplication
+//开启缓存功能
+@EnableCaching
+public class Application{
+    public static void main(String[] args){
+        SpringApplication.run(Application.class,args);
+    }
+}
+```
+
+设置当前操作的结果数据进入缓存
+
+```java
+//value的值自定义，相当于命名空间，key的值代表在进行查询时会先根据id在缓存数据中查询
+//一般key的值与查询方法传入的参数值对应
+//这个注解会存入缓存，当你第一次使用后再传入同样的id不会更新数据，如果有需求传入相同的id返回的结果不能够固定，应使用 @CachePut注解，传入参数跟这一个保持一致，传入相同的id时会更新数据，只存入数据
+//
+@CachePut(value = "smsCode",key="#tele")
+public String sendCodeToSMS(String tele) {
+    //此处是调用了根据手机号生成验证码的方法
+    String code = codeUtils.generator(tele);
+    return code;
+}
+```
+
+```java
+//当你使用 @CachePut 这个注解时，获取对应的缓存数据时，使用 @Cacheable 注解，设置相同的命名空间，格式如下
+//@CachePut 注解是只存入数据
+//@Cacheable 是获取缓存中的数据，里面的value值和key值应该传入相同的数据
+@Cacheable(value = "smsCode",key="#tele")
+public String get(String tele){
+    return null;
+}
+//虽说这里返回的是 null 值，但是当你的缓存中含有传入的tele时，会返回缓存中对应的值
+```
+
+$\textcolor{red}{}$$\textcolor{red}{@Cacheable}$ 此注解要想生效必须设置在 Spring 的 Bean 中
+
+上面使用的是 Spring 的默认缓存
+
+
+
+##### Ehcache缓存技术
+
+SpringBoot提供的缓存技术除了提供默认的缓存方案，还可以对其他缓存技术进行整合，统一接口，方便缓存技术的开发与管理
+
+更换其他的缓存解决方案差不多
+
+1. 加入Ehcache坐标
+
+   ```xml
+   <dependency>
+   	<groupId>net.sf.ehcache</groupId>
+       <artifactId>ehcache</artifactId>
+   </dependency>
+   ```
+
+2. 缓存设定为使用 Ehcache
+
+   ```yaml
+   spring:
+    cache:
+     type: ehcache
+     ehcache:
+      config: ehcache.xml  #配置文件
+   ```
+
+3. 配置文件
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:noNamespaceSchemaLocation="http://ehcache.org/ehcache.xsd"
+            updateCheck="false">
+       <diskStore path="D:\ehcache" />
+   
+       <!--默认缓存策略 -->
+       <!-- external：是否永久存在，设置为true则不会被清除，此时与timeout冲突，通常设置为false-->
+       <!-- diskPersistent：是否启用磁盘持久化-->
+       <!-- maxElementsInMemory：最大缓存数量-->
+       <!-- overflowToDisk：超过最大缓存数量是否持久化到磁盘-->
+       <!-- timeToIdleSeconds：最大不活动间隔，设置过长缓存容易溢出，设置过短无效果，可用于记录时效性数据，例如验证码-->
+       <!-- timeToLiveSeconds：最大存活时间-->
+       <!-- memoryStoreEvictionPolicy：缓存清除策略-->
+       <defaultCache
+           eternal="false"
+           diskPersistent="false"
+           maxElementsInMemory="1000"
+           overflowToDisk="false"
+           timeToIdleSeconds="60"
+           timeToLiveSeconds="60"
+           memoryStoreEvictionPolicy="LRU" />
+       <!--LRU淘汰策略：挑选最后一次使用时间最早的淘汰-->
+   	<!--LFU淘汰策略：挑选最近使用次数最少的淘汰-->
+       
+       <!--下面的name是缓存空间名称-->
+       <cache
+           name="smsCode" 			
+           eternal="false"
+           diskPersistent="false"
+           maxElementsInMemory="1000"
+           overflowToDisk="false"
+           timeToIdleSeconds="10"
+           timeToLiveSeconds="10"
+           memoryStoreEvictionPolicy="LRU" />
+   
+   </ehcache>
+   ```
+
+****
+
+##### jetCache远程缓存
+
+对SpringCache进行了封装，在原有功能基础上实现了多级缓存，缓存统计，自动刷新，异步调用，数据报表等功能。
+
+- jetCache设定了本地缓存与远程缓存的多级缓存解决方案
+  - 本地缓存
+    - LinkedHashMap（相对于HashMap进行了性能优化
+    - Caddeine
+  - 远程缓存
+    - Redis
+    - Tair
+
+##### j2Cache
+
+是一个缓存整合框架，可以提供缓存的整合方案，使各种缓存搭配使用，自身不提供缓存功能
+
+
+
+#### 任务
+
+定时任务是企业级应用中的常见操作
+
+常见的一个定时任务技术：Quarzt，Spring Task
+
+**SpringBoot整合Quarzt**
+
+- 相关概念
+
+  - 工作（Job）：用于定义具体执行的工作
+  - 工作明细（JobDetail）：用于描述定时工作相关的信息
+  - 触发器（Trigger）：用于描述触发工作的原则，通常使用 cron 表达式定义调度规则
+  - 调度器（Scheduler）：描述了工作明细与触发器的对应关系
+
+  触发器绑定工作明细，工作明细中指定工作
+
+****
+
+1. 导入坐标
+
+   ```xml
+   <dependency>
+   	<groupId>org.springframework.boot</groupId>
+       <artifactId>spring-boot-starter-quartz</artifactId>
+   </dependency>
+   ```
+
+2. 定义具体要执行的任务，继承QuartzJobBean
+
+   ```java
+   public class QuartzTaskTest extends QuartzBean{
+       @Override
+       protected void executeInternal(JobExecutionContext context)
+           throws JobExecutionException{
+           //执行对应的语句，可以从context参数中获得一些数据
+       }
+   }
+   ```
+
+3. 定义工作明细与触发器，并绑定对应关系
+
+   ```java
+   @Configuration
+   public class QuartzConfig{
+       @Bean
+       public JobDetail printJobDetail(){
+         return JobBuilder.newJob(QuartzTaskTest.class).storeDurably().build();
+       }
+       @Bean
+       public Trigger printJobTrigger(){
+         CronScheduleBuilder cron = 
+           CronScheduleBuilder.cronSchedule("传入执行的时间条件，具体资料自己搜吧");
+         return TriggerBuilder.newTrigger().forJob(printJobDetail())
+             .withSchedule(cron).build();
+       }
+   }
+   ```
+
+****
+
+**Spring Task**
+
+1. 开启定时任务功能
+
+   ```java
+   @SpringBootApplication
+   @EnableScheduling
+   public class Application{
+       public static void main(String[] args){
+           SpringApplication.run(Application.class,args);
+       }
+   }
+   ```
+
+2. 设定定时执行的任务，并设定执行周期
+
+   ```java
+   @Component
+   public class ScheduleBean{
+       @Scheduled(cron = "0/5 * * * * ?")
+       //每五秒执行一次，
+       public void print(){
+           sout("nihaowa")
+       }
+   }
+   ```
+
+3. 定时任务相关配置
+
+   ```yaml
+   spring:
+     task: 
+       scheduling: 
+         # 任务调度线程池大小，默认1
+         pool: 
+           size: 1
+         # 调度线程名称前缀，默认scheduling-，方便调试使用
+         # Thread.currentThread().getName() 由此方法调用可以看到
+         thread-name-prefix: ssm_
+         shuidown:
+           # 线程池关闭时如果有任务未执行完毕，是否等待其执行完毕
+           await-termination: false
+           # 调度线程关闭前最大等待时间，确保最后一顶关闭
+           await-termination-period: 10s
+         
+          
+   ```
+   
+   
+
+#### 邮件
+
+**SpringBoot整合JavaMail**
+
+- SMPTP：简单邮件传输协议，用于发送电子邮件的传输协议（最常用
+- POP3：用于接收电子邮件的标准协议
+- IMAP：互联网消息协议，是POP3的替代协议
+
+
+
+1. 导入坐标
+
+   ```xml
+   <dependency>
+   	<groupId>org.springframework.boot</groupId>
+       <artifactId>spring-boot-starter-mail</artifactId>
+   </dependency>
+   ```
+
+2. 配置文件进行设置
+
+   ```yaml
+   spring: 
+     mail:
+       host: smtp.163.com
+       username: xx@163.com
+       password: 邮箱所提供的授权码
+   ```
+
+3. 发送邮件
+
+   ```java
+   private String from = "****@163.com" 		//发送人
+   private String to = "****@qq.com"			//就收人
+   private String subject = "邮件标题";		 //邮件主题
+   private String text = "邮件正文"			 //邮件内容 
+       
+   @Autowired
+   private JavaMailSender mailSender;
+   
+   public void sendMail(){
+       //简单邮件
+       SimpleMailMessage mailMessage = new SimpleMailMessage();
+       mailMessage.setFrom(from);
+       mailMessage.setTo(to);
+       mailMessage.setSubject(subject);
+       mailMessage.setText(text);
+       mailSender.send(mailMessage);
+   }
+   ```
+
+****
+
+**发送多部件邮件**
+
+```java
+@Autowired
+private JavaMailSender mailSender;
+
+public void sendMail(){
+    try{
+        MimeMessage message = JavaMailSender.createMimeMessage();
+        //此处的true是为了开启发送附件
+        MimeMessageHelper helper = new MimeMessageHelper(message,true);
+        helper.setFrom(from);
+        helper.setTo(to);
+        helper.setSubject(subject);
+        //此处设置为true，如果text中含有html标签，可以进行解析
+        helper.setText(text,true);
+        File f1 = new File("对应的路径");
+        File f2 = new File("对应的路径");
+        //f1.getName()获取了原文件的名字
+        helper.addAttachment(f1.getName(),f1);
+        helper.addAttachment("自定义名字记得加后缀",f2);
+        mailSender.send(message);
+    } catch (Exception e){
+        e.printStackTrace();
+    }
+}
+```
+
+
+
+#### 消息
+
+消息发送方：生产者
+
+消息接收方：消费者
+
+异步消息传递技术：JMS、AMQP、MQTT
+
+JMS：一个规范，等同于JDBC规范，提供了与消息服务相关的API接口
+
+- JMS消息模型：
+  - peer-2-peer：点对点模型，消息发送到一个队列中，队列保存消息。队列的小时之恩呗一个消费者消费，或超时
+  - publish-subscribe：发布订阅模型，消息可以被多个消费者消费，生产者和消费者完全独立，不需要感知对方的存在（企业级开发应使用这一个
+
+- JMS消息种类
+  - TextMessage
+  - MapMessage
+  - $\textcolor{red}{ByteMessage}$（常用
+  - SstreamMessage
+  - ObjectMessage
+  - Message（只有消息头和属性
+
+AMQP：一种协议（高级消息队列协议，也是消息代理规范），规范了网络交换的数据格式，兼容JMS
+优点：具有跨平台性服务器供应商，生产者，消费者可以使用不同的语言来实现
+
+- AMQP消息模型
+  - ==direct exchange==
+  - ==topic exchange==
+  - fanout exchange
+  - headers exchange
+  - system exchange
+
+AMQP消息种类：byte[]（解决了跨平台的问题
+
+Kafka：一种高吞吐量的分布式发布订阅消息系统，提供实时消息功能
 
 
 
@@ -2162,13 +2733,111 @@ public class ServerConfig{
 
 ### 监控
 
+**监控的意义**
+
+- 监控服务器状态是否宕机
+- 监控服务运行指标（内存、虚拟机、线程、请求等
+- 监控日志
+- 管理服务（服务下线
+
+监控的实施方式：
+
+​	显示监控信息的服务器：用于获取服务信息，并显示对应的的信息
+
+​	运行的服务：启动时主动上报，告知监控服务器自己需要收到监控
 
 
 
+**可视化监控平台**
+
+SpringBootAdmin（不属于Spring官方，使用的版本应该和SpringBoot的版本对应，相同即可），开源社区项目，用于管理和监控SpringBoot应用程序。客户端注册到服务端后，通过HTTP请求方式，服务器定期从客户端获取对应的信息，并通过UI界面展示对应信息
+
+- 服务端
+
+  ```xml
+  <dependency>
+  	<groupId>de.codecertric</groupId>
+      <artifactId>spring-boot-admin-starter-server</artifactId>
+      <version>应该对应你使用的Spring的版本</version>
+  </dependency>
+  ```
+
+- 客户端
+
+  ```xml
+  <dependency>
+  	<groupId>de.codecertric</groupId>
+      <artifactId>spring-boot-admin-starter-client</artifactId>
+      <version>应该对应你使用的Spring的版本</version>
+  </dependency>
+  ```
+
+服务端一定要做成web项目，并且启用Spring-Admin，启动类添加注解 `@EnableAdminServer`
+
+客户端开放权限
+
+```yaml
+spring:
+  boot:
+    admin:
+      client:
+        url: http://localhost:8080   #对应的服务端的地址
+management: 
+  endpoint: 	  	# 这一层是设置是否对外开启功能
+    health:			# health必须开放	
+      show-details: always		#开启所有功能
+    beans:  		# 端点名称
+      enabled: true #开启断电
+  endpoints:	# 这一层是设置开启的功能是否能在web层查看
+    web: 
+      exposure:
+        include: "*"   #开放全部权限给对应服务端
+```
 
 
 
+**自定义监控指标**
 
+![image-20220801101555976](https://sm-1301822562.cos.ap-nanjing.myqcloud.com/myTypora/image-20220801101555976.png)
+
+info信息：在yaml配置文件中配置以后即可在web端查看到此信息
+
+```yaml
+info: 
+ auther: hanyongyan
+ version: @project.version@			# 引用了pom.xml文件中的属性
+```
+
+通过编程来添加自定义指标
+
+```java
+@Component
+public class AppInfoContributor implements InfoContributor{
+    @Override
+    public void contribute(Info.Builder builder){
+        Map<String,Object> infoMap = new HashMap<>();
+        infoMap.put("buildTime",2006);
+        builder.withDetails(infoMap);		//可以从map集合中添加多个信息
+        builder.withDetail("runTime",System.currentTimeMillis());//添加单条信息
+    }
+}
+```
+
+health信息：需要适应变成来添加自定义指标
+
+一般会添加重要的组件
+
+```java
+@Component 
+public class AppHealthContributor extends HealthContributor{
+    @Override
+    protected void doHealthChech(Health.Builder builder) throws Excepiton{
+        //传入信息的方式与info通过编程添加信息一样
+        builder.status(Status.DOWN);//来设置这一项的状态
+        //Status.UP Status.UNKNOWN 
+    }
+}
+```
 
 
 
@@ -2215,7 +2884,7 @@ public class ServerConfig{
 - date：2018-02-7					日期必须使用yyyy-MM-dd格式
 - datetime：2018-02-17T15：02：31+08：00					时间和日期之间使用T连接，最后使用+代表时区
 
-**当你在配置文件中输入以0开头的最好使用引号引起来，报错的可能性大**
+**当你在配置文件中输入以0开头的最好使用引号引起来，可能会误识别为其他进制**
 
 
 
@@ -2310,9 +2979,17 @@ tempDir: ${baseDir}\temp
 #tempDir的值就是  c:\windows\temp
 ```
 
+### yaml文件读取xml文件内容
 
+```xml
+<time>
+	<now>2020</now>
+</time>
+```
 
-
+```yaml
+Time: @time.now@
+```
 
 
 
