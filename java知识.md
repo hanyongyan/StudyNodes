@@ -55,7 +55,7 @@ public class Main {
         Stream<Integer> valueStream = map.values().stream();
         //键值对对象所对应的流
         Stream<Map.Entry<String, Integer>> entryStream = map.entrySet().stream();
-//数组可以通过stream接口的静态方法of (T... vaLues)生成流
+   	 //数组可以通过stream接口的静态方法of (T... vaLues)生成流
         String[] strArray = {"he11o", "wor1d", "java"};
         Stream<String> strArrayStream = Stream.of(strArray);
         Stream<String> strArrayStream2 = Stream.of("hello", "world", "java");

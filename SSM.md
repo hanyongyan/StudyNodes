@@ -17,7 +17,8 @@ Spring Framework系统架构
 - Spring 技术对 IoC 思想进行了实现
   - Spring 提供了一个容器，成为 IoC 容器，用来充当 IoC 思想中的 `外部`
   - IoC 容器负责对象的创建、初始化等一系列工作，被创建或被管理的对象在 IoC 容器中统称为 `Bean`
-- DI （Dependency Injection）依赖注入
+- ## DI （Dependency Injection）依赖注入
+  
   - 在容器中建立 Bean 与 Bean 之间的依赖关系的整个过程，成为依赖注入
 
 <img src="https://sm-1301822562.cos.ap-nanjing.myqcloud.com/myTypora/image-20220709201149199.png" alt="image-20220709201149199" style="zoom:50%;" />
@@ -1195,9 +1196,16 @@ GET可以简写为@GetMapping，其他同理
 ####  @RequestParam  @RequestBody   @PathVariable
 
 - 区别
-  -  @RequestParam 用于接收url地址传参或表单传参
-  -  @RequestBody  用于接受json数据
-  -  @PathVariable 用于接收路径参数，实用{参数名称}描述路径参数
+  - @RequestParam 用于接收url地址传参或表单传参，
+  
+    只有一个数据或者数据时使用
+  
+    传来的是数组使用 List 接收
+  
+  - @RequestBody  用于接受json数据
+  
+  -  @PathVariable 用于接收路径参数，实用{参数名称}描述路径参数 
+  
 - 应用
   - 后期开发中，发送请求参数超过1个时，以json格式为主，@RequestBody 应用较广
   - 如果使用非JSON格式数据，选用@RequestParam接受请求参数
@@ -1369,6 +1377,10 @@ public class ProjectExceptionAdvice{
         return new result();//返回一个信息
     }
 }
+-----------------------
+@ControllerAdvice(annotation = {RestController.class})
+//处理对应的使用了RestController的注解的
+//等同@RestControllerAdvice
 ```
 
 那么业务层，数据层怎么集中到处理层处理呢？
@@ -3007,6 +3019,7 @@ mybatis-plus:
   db-config:
    id-type: auto #更改自增策略
  configuration: 
+  map-underscore-to-camel-case: ture #映射实体类中的属性时，使得字段名中含有下划线与驼峰命名相匹配
   log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #开启日志
 ```
 
