@@ -1518,16 +1518,7 @@ GRANT 和 REVOKE 允许的动态权限
 | [`VERSION_TOKEN_ADMIN`](https://dev.mysql.com/doc/refman/8.0/en/privileges-provided.html#priv_version-token-admin) | Server administration                             |
 | [`XA_RECOVER_ADMIN`](https://dev.mysql.com/doc/refman/8.0/en/privileges-provided.html#priv_xa-recover-admin) | Server administration                             |
 
-# 图形化界面工具
 
-- Workbench(免费): http://dev.mysql.com/downloads/workbench/
-- navicat(收费，试用版30天): https://www.navicat.com/en/download/navicat-for-mysql
-- Sequel Pro(开源免费，仅支持Mac OS): http://www.sequelpro.com/
-- HeidiSQL(免费): http://www.heidisql.com/
-- phpMyAdmin(免费): https://www.phpmyadmin.net/
-- SQLyog: https://sqlyog.en.softonic.com/
-
-# 安装
 
 # 小技巧
 
@@ -1539,3 +1530,167 @@ SELECT table_schema "Database Name"
 FROM information_schema.TABLES
 GROUP BY table_schema;
 ```
+
+# MySql主从复制
+
+对于同一时刻有大量并发读操作和少量写操作类型的应用系统来说，将数据库拆分为主库和从库，主库负责处理事务性的增删改操作，从库负责处理查询操作，能够有限的避免有数据更新导致的行锁，使得整个系统的查询性能得到极大额改善
+
+## 读写分离
+
+<img src="https://sm-1301822562.cos.ap-nanjing.myqcloud.com/myTypora/image-20220810132610959.png" alt="image-20220810132610959" style="zoom: 33%;" />
+
+<img src="https://sm-1301822562.cos.ap-nanjing.myqcloud.com/myTypora/image-20220810133647042.png" alt="image-20220810133647042" style="zoom:33%;" />
+
+### Sharding-JDBC
+
+Sharding-JDBC定位为轻量级Java框架，在Java的JDBC层提供的额外服务。它使用客户端直连数据库，以jar包形式提供服务，无需额外部署和依赖，可理解为增强版的JDBC驱动，完全兼容JDBC和各种ORM框架。
+
+使用Sharding-JDBC可以在程序中轻松的实现数据库读写分离。
+
+```xml
+<!--坐标-->
+<dependency>
+	<groupId>org.apache.shardingsphere</groupId>
+    <artifactId>sharding-jdbc-spring-boot-starter</artifactId>
+    <version>...</version>
+</dependency>
+```
+
+1. 导入Maven坐标
+
+   ```xml
+   <!--坐标-->
+   <dependency>
+   	<groupId>org.apache.shardingsphere</groupId>
+       <artifactId>sharding-jdbc-spring-boot-starter</artifactId>
+       <version>...</version>
+   </dependency>
+   ```
+
+2. 配置文件中配置读写分离规则
+
+   ```yaml
+   # 配置以后 datasource p
+   spring:
+     shardingsphere:
+       datesource:
+         names:
+           master,slave		#此处的名字与下面的master和slave是对应的，可以有多个
+         # 主数据源
+         master:
+           type: com.alibaba.druid.pool.DruidDataSource
+           driver-class-name: com.mysql.cj.jdbc.Driver
+           url: jdbc:mysql://主数据源ip:端口号/数据库?characterEncoding=utf-8
+           username: ...
+           password: ...
+         # 从数据源
+         slave:
+           type: com.alibaba.druid.pool.DruidDataSource
+           driver-class-name: com.mysql.cj.jdbc.Driver
+           url: jdbc:mysql://从数据源ip:端口号/数据库?characterEncoding=utf-8
+           username: ...
+           password: ...
+       masterslave: 
+         # 读写分离配置  round_robin 代表轮换，如果有多个从数据库就挨个使用
+         load-balance-alrorithm-type: round_robin
+         # 最终的数据源名称
+         name: dataSource
+         # 主库数据源名称
+         master-data-source-name: master
+         # 从库数据源名称列表，多个逗号分隔
+         slave-data-source-name: slave
+       props:
+         sql:
+           show: true 		# 开启SQL显示，默认false
+   ```
+
+3. 在配置文件中配置允许bean定义覆盖配置项
+
+   ```yaml
+   spring: 
+     main:
+       allow-bean-definition-overriding: t
+   ```
+
+   
+
+## 介绍
+
+<img src="https://sm-1301822562.cos.ap-nanjing.myqcloud.com/myTypora/image-20220810134200406.png" alt="image-20220810134200406" style="zoom: 50%;" />
+
+## 配置
+
+提前准备好两台服务器，分别安装Mysql并启动服务成功
+
+- 主库Master  
+- 从库Slave
+
+Mysql使用rpm模式安装以后
+
+> 配置主库
+
+1. 修改Mysql数据库的配置文件 /etc/my.cnf
+
+   在 [mysqld] 后面追加两行
+
+   ```shell
+   [mysqld]
+   log-bin=mysql-bin		# [必须]启用二进制日志
+   server-id=100			# [必须]服务器唯一ID，自己来设置不重复即可
+   ```
+
+2. 重启Mysql服务
+
+   `systemctl restart mysqld`
+
+3. 登录Mysql数据库，执行下面的sql
+
+   ```sql
+   GRANT REPLICATION SLAVE ON *.* to 'xiaoming'@'%' identified by 'Root@123456';
+   ```
+
+   注：上面SQL的作用是创建一个用户xiaoming，密码为Root@123456，并且给xiaoming用户授予REPLICATION SLAVE权限。常用于建立复制时所需要用到的用户权限，也就是slave必须被master授权具有该权限的用户，才能通过该用户复制。
+
+4. 登录Mysql数据库，执行下面SQL，记录下结果中的 File 和 Position 的值
+
+   `show master status`
+   <img src="https://sm-1301822562.cos.ap-nanjing.myqcloud.com/myTypora/image-20220810150602769.png" alt="image-20220810150602769" style="zoom:66%;" />
+
+   注：上面SQL的作用是查看Master的状态，执行完此SQL后不要再执行任何操作
+
+   > 配置从库
+
+   1. 修改Mysql数据库的配置文件 /etc/my.cnf
+
+      ```shell
+      [mysqld]
+      server-id=101			# [必须]服务器唯一ID，自己来设置不重复即可
+      ```
+
+   2. 重启Mysql服务
+
+      `systemctl restart mysqld`
+
+   3. 登录Mysql数据库，执行下面SQL
+
+      ```sql
+      change master to
+      master_host='主库ip',master_user='主库设置的用户名',
+      master_password='主库设置的密码',master_log_file='主库获取的file',
+      master_log_pos=主库获取的position;
+      
+      start slave;
+      ```
+
+   4. 登录Mysql数据库，执行下面SQL，查看数据库的状态
+
+      ```sql
+      show slave status;
+      ```
+
+      <img src="https://sm-1301822562.cos.ap-nanjing.myqcloud.com/myTypora/image-20220810151909754.png" alt="image-20220810151909754" style="zoom:66%;" />
+
+      出现的情况与此差不多即完成
+
+      如果查询后比较乱，可以复制到文本编辑器中去查看，不要打开自动换行
+

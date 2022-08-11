@@ -284,9 +284,16 @@ rpm -e --nodeps 软件名称							卸载软件
 
 `cat /var/log/mysqld.log | grep password`查看mysql密码
 
+### 树形查看文件
 
+`yum install tree`
 
+安装完成以后使用 `tree` 命令即可树形图查看当前文件夹内的文件目录层次
+<img src="https://sm-1301822562.cos.ap-nanjing.myqcloud.com/myTypora/image-20220810174658987.png" alt="image-20220810174658987" style="zoom: 50%;" />
 
+### Nginx安装
+
+![image-20220810173812781](https://sm-1301822562.cos.ap-nanjing.myqcloud.com/myTypora/image-20220810173812781.png)
 
 ## 项目部署
 
