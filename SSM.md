@@ -2925,27 +2925,7 @@ public class AppHealthContributor extends HealthContributor{
 
 ### yaml文件怎么读取
 
-方法一
-
-```java
-@Value("${name}")				//读取到yaml配置文件中的name值
-private String name;
-@Value("${user.password}")		//多级读取
-private String password;
-@Value("${subject[1]}")		//读取数组中的内容
-private String subject;
-```
-
-方法二
-
-```java
-@Autowired						//此变量会获取配置文件中全部的值
-private Environment env;
-//在方法中进行调用
-env.getProperty("配置文件中对应的属性名")
-```
-
-方法三 （常用
+方法一（常用
 
 ```yaml
 enterprise: 
@@ -2968,6 +2948,26 @@ public class Enterprise{
     private String[] subject;
 }
 //会完成自动封装
+```
+
+方法二
+
+```java
+@Autowired						//此变量会获取配置文件中全部的值
+private Environment env;
+//在方法中进行调用
+env.getProperty("配置文件中对应的属性名")
+```
+
+方法三 
+
+```java
+@Value("${name}")				//读取到yaml配置文件中的name值
+private String name;
+@Value("${user.password}")		//多级读取
+private String password;
+@Value("${subject[1]}")		//读取数组中的内容
+private String subject;
 ```
 
 自定义对象封装数据警告解决方案
