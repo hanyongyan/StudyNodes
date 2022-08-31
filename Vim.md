@@ -112,7 +112,7 @@
 	- [vim-for-server](https://github.com/wklken/vim-for-server)
 	- 在假设你已经备份好你的 Vim 配置文件后，使用该配置文件：`curl https://raw.githubusercontent.com/wklken/vim-for-server/master/vimrc > ~/.vimrc`
 	- 效果如下：
-		- ![vim-for-server](https://raw.githubusercontent.com/wklken/gallery/master/vim/vim-for-server.png)
+		- ![image-20220830125034349](https://sm-1301822562.cos.ap-nanjing.myqcloud.com/myTypora/image-20220830125034349.png)
 - 需要特别注意的是，如果你平时粘贴内容到终端 Vim 出现缩进错乱，一般需要这样做：
 	- 进入 vim 后，按 `F5`，然后 `shift + insert` 进行粘贴。这种事就不会错乱了。
 	- 原因是：`vim ~/.vimrc` 中有一行这样的设置：`set pastetoggle=<F5>`

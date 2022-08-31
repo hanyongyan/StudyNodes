@@ -1,0 +1,41 @@
+server:
+  port: 8080
+spring:
+  datasource:
+    druid:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://localhost:3306/reggie?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+      username: root
+      password: "040416"
+
+  cache:
+    redis:
+      time-to-live: 1800000 # 设置缓存数据的过期时间
+  redis:
+    host: 1.15.45.111
+    port: 6379
+    #password: 123456		如果你开起了密码选项
+    database: 0            #redis默认有十六个数据库，在此使用第一个
+    jedis:
+      # Redis 连接池配置
+      pool:
+        max-active: 8        # 最大连接数
+        max-wait: 1ms        # 连接池最大阻塞等待时间
+        max-idle: 4        # 连接池中最大空闲连接
+        min-idle: 0        # 连接池中最小空闲连接
+
+mybatis-plus:
+  configuration:
+    #在映射实体或者属性时，将数据库中表名和字段名中的下划线去掉，按照驼峰命名法映射，使address_book对应的实体类为AddressBook，字段也这样对应
+    map-underscore-to-camel-case: true
+    # 开启日志
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: ASSIGN_ID
+
+mybatis:
+  # 扫描对用的mapper 对应的是resource文件夹下的
+  mapper-locations: classpath:mapper/*.xml
+  # 在mapper.xml文件中不用写实体类的全程
+  type-aliases-package: com.entity
