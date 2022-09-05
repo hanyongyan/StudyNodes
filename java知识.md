@@ -211,3 +211,11 @@ stream的方法collcet()  使用时里面的toList，toSet，toMap可以实现�
   模块依赖格式： requires 模块名；
 
   注意：写模块名报错，需要按下 Alt + Enter 提示，然后选择模块依赖。
+
+
+
+
+
+Comparable和Comparator的区别
+
+![元素排序Comparable和Comparator有什么区别？](https://sm-1301822562.cos.ap-nanjing.myqcloud.com/myTypora/57226868a3f0418c88be516c9e6f980f~tplv-k3u1fbpfcp-zoom-crop-mark:3024:3024:3024:1702.awebp)
