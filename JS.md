@@ -389,7 +389,7 @@ document.addEventListener('click', function() {
 
 事件委托也成为事件代理，jQuery里面称为事件委派
 
-事件委托的原理：`不是每个子节点单独设置事件监听器，二十事件监听器设置在父节点上，然后利用冒泡原理影响设置每个子节点`
+事件委托的原理：`不是每个子节点单独设置事件监听器，而是事件监听器设置在父节点上，然后利用冒泡原理影响设置每个子节点`
 
 事件委托的作用：提高了程序的性能
 
@@ -1282,5 +1282,23 @@ console.log(`hello,my name is ${name}`);
 const s = new Set();
 // ke'yi'jie's
 const set = new Set([...]);
+```
+
+# 可选链操作符
+
+```js
+// 我们先来定义一个空对象
+const a = {}
+// 我们来进行读取一个不存在的属性
+a.name // 会返回 undefined
+a.name.length //这种情况会报错，因为name是undefined
+// 使用 可选链操作符 就不会出现这种问题
+a.name?.length // 返回 undefined 
+// 下面是配套使用的一个东西
+a.name?.length ?? [] // 只有当前面的返回的是null或者undefined hui'mian
+```
+
+```js
+a.name!.length  		// ! 是fei
 ```
 
