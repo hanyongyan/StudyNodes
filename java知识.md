@@ -219,3 +219,63 @@ stream的方法collcet()  使用时里面的toList，toSet，toMap可以实现�
 Comparable和Comparator的区别
 
 ![元素排序Comparable和Comparator有什么区别？](https://sm-1301822562.cos.ap-nanjing.myqcloud.com/myTypora/57226868a3f0418c88be516c9e6f980f~tplv-k3u1fbpfcp-zoom-crop-mark:3024:3024:3024:1702.awebp)
+
+---
+
+# IO流
+
+字节流：InputStream 字节输入流，OutputStream 字节输出流，一次只能读取一个字节
+
+字符流：Reader 字符输入流， Writer 字符输出流
+
+IO流自动释放资源，需要实现接口 AutoCloseable，IO流自动实现了这个接口
+
+```java
+// 资源用完最终自动释放
+// jdk7 版本
+try(创建流对象1;创建流对象2){
+    // 可能出现异常的代码;
+}catch(异常类名 变量名){
+    // 异常的处理代码;
+}
+// jdk9 版本 外面出现异常还是需要进行抛出处理
+创建流对象1;
+创建流对象2;
+try(流1; 流2){
+    // 可能出现异常的代码;
+} catch(异常类名 变量名){
+    // 异常的处理代码;
+}
+
+```
+
+如果不进行设置当我们<font color="red">读取</font>中文时会出现乱码的情况，因为默认使用的是ASCII编码，只支持英文。我们应该使用字节流
+
+---
+
+字符流 = 字节流 + 字符集
+
+特点：
+
+- 输入流：一次读一个字节，遇到中文时，一次读多个字节
+- 输出流：底层会把数据按照指定的编码方式进行编码，变成字节再写到文件中
+
+使用场景：对于纯文本进行读写操作 
+
+```java
+public class Main {
+    public static void main(String[] args) throws IOException {
+        FileReader fr = new FileReader(".\\a.txt");
+        FileWriter fw = new FileWriter(".\\b.txt");
+        char[] ch = new char[2];
+        int len;
+        while ((len = fr.read(ch)) != -1) {
+            // 需要转为 String 否则会乱码
+            fw.write(new String(ch,0,len));
+        }
+        fw.close();
+        fr.close();
+    }
+}
+```
+

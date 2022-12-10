@@ -655,6 +655,8 @@ root.render(<Hello>我是子节点</Hello>)
 
 [文档](https://zh-hans.reactjs.org/docs/typechecking-with-proptypes.html)
 
+使用TS不用使用这个功能
+
 对于组件来说，props是外来的，无法保证组件使用者传入什么格式的数据
 允许创建组件的时候，就指定props的类型、格式等。能捕获使用组件时因为 props 导致的错误，给出明确的错误提示，增加组件的健壮性
 
@@ -763,6 +765,7 @@ React 实现组件复用，复用的是什么 1.state 2.操作 state 的方法
 <img src="https://sm-1301822562.cos.ap-nanjing.myqcloud.com/myTypora/image-20221129134043650.png" alt="image-20221129134043650" style="zoom:50%;" />
 
 推荐给 render props 模式添加 props 校验
+
 ```jsx
 Mouse.PorpTypes = {
     children: PropTypes.func.isRequired
@@ -910,86 +913,87 @@ class Hello extends React.Component {
 
 ---
 
-# 路由
+# Hooks
 
-## 基本使用
+## useContext
 
-1. 安装：`npm i react-router-dom`
-
-2. 导入路由的三个核心组件
-
-   `import { BrowserRouter as Router, Route ,Link } form 'react-router-dom'`
-
-3. 使用 Router 组件包裹整个应用（<font color="red">重要</font>)
-
-4. 使用 Link 组件 作为导航菜单（路由入口） `<Link to="/first">页面一</Link>`
-
-5. 使用 Route 组件配置路由规则和要展示的组件（路由出口）
-
-   ![image-20221130101019817](https://sm-1301822562.cos.ap-nanjing.myqcloud.com/myTypora/image-20221130101019817.png)
-
----
-
-**常用组件说明**
-
-- Router 组件：包裹整个应用，一个 React 应用只需要使用一次
-
-- LInk组件：用于指定导航连接（a标签
-
-- Route 组件：指定路由展示组件相关信息
-
-   path属性：路由规则
-   component：展示的组件
-   Route 组件写在哪，渲染出来的组件就展示在哪
-
----
-
-**编程式导航**
-
-通过JS代码实现页面跳转
-
-history 是 React 路由提供的，用户获取浏览器历史记录的相关信息
-
-push(path)：跳转到某个页面，参数 path 表示要跳转的路径
-
-go(n)：表示向前或向后跳转到某个页面，n表示页面数量
+解决多层级组件之间传参问题。
 
 ```jsx
-class Login extends Component {
-    handleLogin = ()=>{
-        // ...
-        this.props.history.push("/home")
-    }
-    render(){...省略}
+const themes = {
+  light: {
+    foreground: "#000000",
+    background: "#eeeeee"
+  },
+  dark: {
+    foreground: "#ffffff",
+    background: "#222222"
+  }
+};
+// 此处进行定义需要传参的数据，这里传入参数相当于定义数据类型
+const ThemeContext = React.createContext(themes.light);
+
+function App() {
+  return (
+    <ThemeContext.Provider value={themes.dark}>
+      <Toolbar />
+    </ThemeContext.Provider>
+  );
+}
+
+function Toolbar(props) {
+  return (
+    <div>
+      <ThemedButton />
+    </div>
+  );
+}
+
+function ThemedButton() {
+  const theme = useContext(ThemeContext);
+  return (
+    <button style={{ background: theme.background, color: theme.foreground }}>
+      I am styled by theme context!
+    </button>
+  );
 }
 ```
 
 ---
 
-**默认路由**：表示进入页面时就会匹配的路由
+## useReducer
 
-默认路由path为：/  ，当进入的时候就会看到对应的组件
-
----
-
-**模糊匹配模式**：React路由是模糊匹配模式。规则：只要以 pathname 以 path 开头就会匹配成功
+使用这个钩子函数实现一个计数器功能
 
 ```jsx
-<Link to='/login'>登陆页面</Link>
-<Route path='/' component={Home}/> 匹配成功
-//login也会显示 默认路由的组件
+import {useReducer} from 'react'
+// 这种函数称为一个纯函数，即传入的同样的参数得到同样的结果
+const reducer = (state, action) => {
+    switch (action.type) {
+        case "ADD":
+            return state + 1;
+        case "DECREASE":
+            return state - 1;
+        default :
+            return state;
+    }
+}
+const App = () => {
+    // useReducer 接受两个参数 ，第一个参数是 处理函数，第二个参数是state的初始值
+    const [state, dispatch] = useReducer(reducer, 0)
+    return (
+        <div>
+            计数器{state}
+            {/* dispatch 函数会调用 useReducer 第一个参数，传值应该传入一个对象，返回值会自动
+            	赋值给 state*/}
+            <button onClick={() => dispatch({type: "ADD"})}>+</button>
+            <button onClick={() => dispatch({type: "DECREASE"})}>+</button>
+        </div>
+    )
+}
 ```
 
-| path   | 能够匹配的pathname           |
-| ------ | ---------------------------- |
-| /      | 所有的pathname               |
-| /first | /first、/first/a、/first/a/b |
-
----
-
-**精确匹配**：给 Route 组件添加 exact 属性，让其变为精确匹配模式。只有当 path 和 pathname 完全匹配时才会展示该路由
-
-# Hooks
+## useCallback
 
 
 
