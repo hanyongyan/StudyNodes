@@ -1,4 +1,75 @@
+# SpringBoot 整合 MyBatis
+
+使用 SpringBoot 整合 MyBatis 直接从 [这里查看](#MyBatis的增删改查)
+
+SpringBoot 整合 MyBatis 以后不需要创建 MyBatis 的核心配置文件，核心配置直接在 application.yaml 中进行设置即可
+
+首先引入依赖
+
+```xml
+<!-- 引入 mybatis-start 依赖-->
+<dependency>
+    <groupId>org.mybatis.spring.boot</groupId>
+    <artifactId>mybatis-spring-boot-starter</artifactId>
+    <version>2.3.0</version>
+</dependency>
+<!-- 引入数据库的依赖 -->
+<dependency>
+    <groupId>com.mysql</groupId>
+    <artifactId>mysql-connector-j</artifactId>
+    <scope>runtime</scope>
+</dependency>
+```
+
+application.yaml 配置文件
+
+```yaml
+# 数据库连接源
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: ""
+    url: jdbc:mysql://1.15.45.111:3306/test
+    # 建议使用下面的连接池，如果使用我们要导入 druid
+    type: com.alibaba.druid.pool.DruidDataSource
+mybatis:
+  # 配置实体类所在的文件夹
+  type-aliases-package: com.test.mybatis.Entity
+  # 配置 xml 文件所在路径，
+  # 此处配置的路径为 resources 目录下的 mybatis 目录下的所有 xml 文件
+  mapper-locations: classpath:/mybatis/*.xml
+```
+
+写对应的 Mapper 文件
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace 代表对应的 mapper 接口-->
+<mapper namespace="com.test.mybatis.Mapper.UserMapper">
+    <!-- 在里面写对应的 sql 语句即可 -->
+    <!-- resultMap 用来设置对应的别名，因为数据库中时使用_作为分隔符，而java使用驼峰命名法-->
+    <resultMap id="user" type="User">
+        <result column="user_phone" property="userPhone"/>
+    </resultMap>
+    <select id="listUser" resultMap="user">
+        select * from user;
+    </select>
+    
+    <!-- resultType 代表返回值的类型-->
+    <select id="getUserById" resultType="User">
+        select * from user where id = #{id};
+    </select>
+</mapper>
+```
+
+完成 SpringBoot 整合 MyBatis
+
 # Mybatis简介
+
 ## MyBatis历史
 -    MyBatis最初是Apache的一个开源项目iBatis, 2010年6月这个项目由Apache Software Foundation迁移到了Google Code。随着开发团队转投Google Code旗下，iBatis3.x正式更名为MyBatis。代码于2013年11月迁移到Github
 - iBatis一词来源于“internet”和“abatis”的组合，是一个基于Java的持久层框架。iBatis提供的持久层框架包括SQL Maps和Data Access Objects（DAO）
@@ -559,7 +630,7 @@ List<User> getUserByLike(@Param("username") String username);
 <select id="getUserByLike" resultType="User">
 	<!--select * from t_user where username like '%${mohu}%'-->  
 	<!--select * from t_user where username like concat('%',#{mohu},'%')-->  
-	select * from t_user where username like "%"#{mohu}"%"
+	select * from t_user where username like '%${username}%'
 </select>
 ```
 - 其中`select * from t_user where username like "%"#{mohu}"%"`是最常用的

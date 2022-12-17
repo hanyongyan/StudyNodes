@@ -16,7 +16,7 @@ const router = createBrowserRouter([
     element: <Home/>,
     childred: [			// 嵌套路由，父路由中
        {
-          index,		// er
+           index:true		// 父路由默认显示的页面
            element: <Son1/>
        }，
        {
@@ -158,24 +158,6 @@ export default Login
 
    
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 配置路由
 
 ```jsx
@@ -301,4 +283,64 @@ const route = createBrowserRouter([
 ```
 
 ---
+
+# createBrowserRouter
+
+[文档](https://reactrouter.com/en/main/routers/create-browser-router)
+
+建议所有 web 项目都是用 createBrowserRouter，其次是 createHashRouter
+
+使用 [DOM History API](https://developer.mozilla.org/zh-CN/docs/Web/API/History) 来更新 URL 和 管理历史栈
+
+```jsx
+import * as React from "react";
+import * as ReactDOM from "react-dom";
+import {
+  createBrowserRouter,
+  RouterProvider,
+} from "react-router-dom";
+
+import Root, { rootLoader } from "./routes/root";
+import Team, { teamLoader } from "./routes/team";
+
+// 创建了路由对象
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Root />,
+    loader: rootLoader, // 在渲染之前向路由元素提供数据，下面会进行
+    children: [
+      {
+        // index:true; 这里是父路由中默认显示的子路由，如果使用此属性，建议不要再使用 path 属性
+        path: "team",
+        element: <Team />,
+        loader: teamLoader,
+      },
+    ],
+  },
+]);
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <RouterProvider router={router} />
+);
+```
+
+loader 属性：路由在渲染之前加载的加载器。当路由跳转时，loader 函数会异步的执行，并且在目标路由组件中可以获取到。
+
+使用方式：
+```jsx
+// 路由的定义
+{
+    element:<Team/>,
+    path:":teamId",
+    loader: async ( {params} ) => { // params 是路由参数
+        return axios.get("路径");
+    }
+}
+// 组件的定义
+const Team = ()=>{
+    const res = useLoaderData(); // 使用这个钩子函数就能够得到异步请求到的数据
+    ...
+}
+```
 

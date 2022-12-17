@@ -1,76 +1,27 @@
-React 安装 `npm i react react-dom`
+# Vite 使用 less
 
-- react 包是核心，提供创建元素、组件等功能
-- react-dom 包提供 DOM 相关功能等。
+```js
+// 安装依赖
+npm install less
+npm install less-loader
 
-React 使用步骤
-
-```html
-
-<div id="root"></div>
-// 1.引入两个文件，注意两个文件的顺序
-<script src="./node_modules/react/umd/react.development.js"></script>
-<script src="./node_modules/react-dom/umd/react-dom.development.js"></script>
-// 2.创建react元素
-<script>
-    // 参数一：元素名称
-    // 参数二：元素属性
-    // 第三个及其以后的参数：元素的子节点
-	const title = React.createElement('h1',null,"Hello React")
-    // 这就是第三个及其以后
-    //const title = React.createElement('h1',null,"Hello React",React.createElement())
-    // 3.渲染 React 元素到页面中
-    // 第一个参数：要渲染的 React 元素
-    // 第二个参数：DOM对象，用于指定渲染到页面中的位置
-    ReactDom.render(title,document.getElementById('root'))
-</script>
+// vite.config.js 配置 less 全局样式
+   css: {
+    // css预处理器
+    preprocessorOptions: {
+      less: {
+        charset: false,
+        // 设置 less 文件的路径
+        additionalData: '@import "./src/assets/style/global.less";',
+      },
+    },
+  },
+// 然后去组件中进行引用即可
 ```
 
----
 
-React脚手架意义
-
-也可以不使用下面的脚手架，使用 Vite 打包速度更快
-
-- 脚手架是开发现代Web应用的必备。
-- 充分利用 Webpack、Babel、ESLint 等工具辅助项目开发
-- 零配置，无需手动配置繁琐的工具即可使用
-- 关注业务，而不是工具配置
-
-1. 初始化项目，
-
-   命令：`npx create-react-app 项目名称`
-
-   ``npm init react-app 项目名称`，
-
-   `yarn create react-app 项目名称`推荐使用第一个
-
-2. `npm start`运行
-
-3. 还有几种模式 `npm run build` `npm test` `npm run eject`
-
-yarn 介绍
-
-- yarn 是 FaceBook 发布的包管理器，可以看作是 npm 的替代品，功能与 npm 相同
-- 具有快速、可靠和安全的特点
-- 初始化新项目：yarn init
-- 安装包：yarn add
-- 安装项目依赖项：yarn
 
 ---
-
-在脚手架中使用 React
-
-1. 导入 react 和 react-dom 两个包
-
-   ```js
-   import React from 'react'
-   import ReactDOM from 'react-dom/client'
-   ```
-
-2. 调用 `const root = ReactDOM.createRoot(document.qs("#root"))`方法创建 react 元素
-
-3. 调用 `root.render()`方法渲染 react 元素到页面中。
 
 # JSX
 
@@ -839,6 +790,10 @@ const App = ()=>{
 
 还存在一种问题，具体看上边的图把
 
+函数组件的写法
+
+<img src="https://sm-1301822562.cos.ap-nanjing.myqcloud.com/myTypora/image-20221212144139318.png" alt="image-20221212144139318" style="zoom:50%;" />
+
 # 部分说明
 
 ## setState() 的说明
@@ -913,6 +868,39 @@ class Hello extends React.Component {
 
 ---
 
+# 懒加载
+
+[文档](https://zh-hans.reactjs.org/docs/code-splitting.html#reactlazy)
+
+延迟加载初次渲染时未用到的组件
+
+```jsx
+// 使用懒加载前加载组件的方式
+import Component from './Component';
+// 使用懒加载加载组件的方式
+const Component = React.lazy(() => import('./Component') )
+
+// 当我们需要使用这个组件的时候
+const App = ()=>{
+    return (
+    	<div>
+            {/* fallback 是准备加载 Component 之前显示的组件，
+            	因为是懒加载，可能需要一定的时间
+                Suspense 组件之间甚至可以包裹多个懒加载组件*/}
+        	<React.Suspense fallback={<div>Loading...</div>}>
+            	<Component></Component>
+            </React.Suspense>
+        </div>
+    )
+}
+```
+
+
+
+
+
+---
+
 # Hooks
 
 ## useContext
@@ -963,6 +951,8 @@ function ThemedButton() {
 
 ## useReducer
 
+我们使用 useState 传入的都是一个值，当我们需要传入一个对象时，使用 useReducer
+
 使用这个钩子函数实现一个计数器功能
 
 ```jsx
@@ -993,7 +983,26 @@ const App = () => {
 }
 ```
 
-## useCallback
+## useRef
 
+[Ref文档](https://zh-hans.reactjs.org/docs/refs-and-the-dom.html)
 
+[useRef文档](https://zh-hans.reactjs.org/docs/hooks-reference.html#useref)
+
+ref 提供了一种方式，允许我们访问 DOM 节点 
+
+```tsx
+const App: FC = () => {
+    // inputEl 就能够获取到对应的DOM元素，两者的名字要一致
+    // 使用 inputEl 要使用 inputEl.current 即可获取到当前 DOM 元素
+    const inputEl = useRef<HTMLInputElement>(null);
+    return (
+        <div>
+             <input ref={inputEl} type="text"/>
+             <button onClick={() => inputEl.current?.focus()}>Focus the input</button>
+        </div>
+    );
+}
+
+```
 
