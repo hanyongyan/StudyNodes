@@ -45,3 +45,18 @@ resolve:{
     }
 },
 ```
+
+![image-20221217203241539](https://sm-1301822562.cos.ap-nanjing.myqcloud.com/myTypora/image-20221217203241539.png)
+
+如果出现类似这样的情况，在 tsconfig.json 或 jsconfig.json 的 compilerOptions，添加如下的配置
+
+```json	
+"baseUrl": "./",
+"paths": {
+  "@/*": [
+    "src/*"
+  ]
+}
+```
+
+配置其他路径引用同理
